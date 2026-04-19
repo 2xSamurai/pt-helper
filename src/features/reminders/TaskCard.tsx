@@ -68,7 +68,13 @@ export function TaskCard({ task, subtasks = [], allTasks = [], depth = 0 }: Task
             <input
               type="checkbox"
               checked={task.completed}
-              onChange={() => update(task.id, { completed: !task.completed })}
+              onChange={() => {
+                const next = !task.completed
+                update(task.id, { completed: next })
+                if (next) {
+                  allTasks.filter((t) => t.parentId === task.id).forEach((t) => update(t.id, { completed: true }))
+                }
+              }}
               className="mt-1 h-4 w-4 accent-[var(--primary)] shrink-0 cursor-pointer"
             />
 
