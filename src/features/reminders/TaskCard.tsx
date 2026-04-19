@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, ChevronDown, Trash2, Pencil, Plus } from 'lucide-react'
+import { ChevronRight, ChevronDown, Trash2, Pencil, Plus, Unlink } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,14 +8,14 @@ import { useRemindersStore } from '@/store/reminders'
 import { TaskForm } from './TaskForm'
 import type { Task } from '@/store/types'
 import { cn } from '@/lib/utils'
-import { formatDateTime } from '@/lib/utils'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 interface TaskCardProps {
   task: Task
+  subtasks?: Task[]
+  allTasks?: Task[]
   depth?: number
-  children?: Task[]
 }
 
 function RepeatBadge({ repeat }: { repeat: Task['repeat'] }) {
@@ -23,29 +23,42 @@ function RepeatBadge({ repeat }: { repeat: Task['repeat'] }) {
   const label = repeat.type === 'custom'
     ? repeat.customFrequency === 'every-x-days'
       ? `Every ${repeat.customEveryXDays}d`
-      : repeat.customFrequency
+      : repeat.customFrequency ?? 'custom'
     : repeat.type
   return <Badge variant="secondary" className="text-[10px] capitalize">{label}</Badge>
 }
 
-export function TaskCard({ task, depth = 0, children = [] }: TaskCardProps) {
-  const { update, remove, add } = useRemindersStore()
+function formatTime(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 || 12
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+export function TaskCard({ task, subtasks = [], allTasks = [], depth = 0 }: TaskCardProps) {
+  const { update, remove, add, setParent } = useRemindersStore()
   const [expanded, setExpanded] = useState(true)
   const [editing, setEditing] = useState(false)
   const [addingSub, setAddingSub] = useState(false)
 
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
   const style = { transform: CSS.Transform.toString(transform), transition }
 
+  const subTasksOfThis = allTasks.filter((t) => t.parentId === task.id)
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <Card className={cn('transition-opacity', depth > 0 && 'border-l-2 border-l-[var(--primary)] rounded-l-none ml-4')}>
+    <div ref={setNodeRef} style={style} {...attributes} className={cn(isDragging && 'opacity-40')}>
+      <Card className={cn(
+        'transition-colors',
+        depth > 0 && 'border-l-2 border-l-[var(--primary)] rounded-tl-none rounded-bl-none ml-5'
+      )}>
         <CardContent className="pt-3 pb-3">
           <div className="flex items-start gap-2">
+            {/* Drag handle */}
             <button
               {...listeners}
-              className="mt-0.5 cursor-grab touch-none text-[var(--text-muted)]"
-              title="Drag to reorder"
+              className="mt-1 cursor-grab touch-none text-[var(--text-muted)] text-base leading-none select-none"
+              title="Drag onto another task to nest as subtask"
             >
               ⠿
             </button>
@@ -67,15 +80,25 @@ export function TaskCard({ task, depth = 0, children = [] }: TaskCardProps) {
               <div className="flex flex-wrap gap-1 mt-1">
                 <RepeatBadge repeat={task.repeat} />
                 {task.reminderTime && (
-                  <Badge variant="outline" className="text-[10px]">⏰ {formatDateTime(task.reminderTime)}</Badge>
+                  <Badge variant="outline" className="text-[10px]">⏰ {formatTime(task.reminderTime)}</Badge>
                 )}
               </div>
             </div>
 
             <div className="flex items-center gap-0.5 shrink-0">
-              {children.length > 0 && (
+              {(subtasks.length > 0 || subTasksOfThis.length > 0) && (
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpanded(!expanded)}>
                   {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+              {depth > 0 && (
+                <Button
+                  variant="ghost" size="icon"
+                  className="h-7 w-7 text-[var(--text-muted)]"
+                  title="Detach from parent"
+                  onClick={() => setParent(task.id, null)}
+                >
+                  <Unlink className="h-3.5 w-3.5" />
                 </Button>
               )}
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAddingSub(true)}>
@@ -96,10 +119,10 @@ export function TaskCard({ task, depth = 0, children = [] }: TaskCardProps) {
         </CardContent>
       </Card>
 
-      {expanded && children.length > 0 && (
+      {expanded && subTasksOfThis.length > 0 && (
         <div className="flex flex-col gap-2 mt-2">
-          {children.map((sub) => (
-            <TaskCard key={sub.id} task={sub} depth={depth + 1} />
+          {subTasksOfThis.map((sub) => (
+            <TaskCard key={sub.id} task={sub} allTasks={allTasks} depth={depth + 1} />
           ))}
         </div>
       )}

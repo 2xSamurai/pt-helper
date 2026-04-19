@@ -29,6 +29,21 @@ export const useEatingStore = create<EatingStore>()(
         })),
       remove: (id) => set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
     }),
-    { name: 'pt-eating' }
+    {
+      name: 'pt-eating',
+      onRehydrateStorage: () => (state) => {
+        if (!state) return
+        // Migrate v0 entries (foodName/portionGrams) → v1 (foods array)
+        state.entries = state.entries.map((e: EatingEntry & { foodName?: string; portionGrams?: number | null }) => {
+          if (!e.foods) {
+            return {
+              ...e,
+              foods: e.foodName ? [{ name: e.foodName, grams: e.portionGrams ?? null }] : [],
+            }
+          }
+          return e
+        })
+      },
+    }
   )
 )

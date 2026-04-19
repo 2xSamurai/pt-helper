@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuid } from 'uuid'
-import type { Task } from './types'
+import type { Task, CompletionRecord } from './types'
 
 interface RemindersStore {
   tasks: Task[]
@@ -9,6 +9,12 @@ interface RemindersStore {
   update: (id: string, data: Partial<Task>) => void
   remove: (id: string) => void
   setParent: (id: string, parentId: string | null) => void
+  logAndReset: (id: string, record: CompletionRecord) => void
+}
+
+const DEFAULT_TASK_FIELDS = {
+  completionHistory: [] as CompletionRecord[],
+  lastResetDate: null as string | null,
 }
 
 export const useRemindersStore = create<RemindersStore>()(
@@ -20,7 +26,13 @@ export const useRemindersStore = create<RemindersStore>()(
         set((s) => ({
           tasks: [
             ...s.tasks,
-            { ...data, id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            {
+              ...DEFAULT_TASK_FIELDS,
+              ...data,
+              id,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
           ],
         }))
         return id
@@ -41,7 +53,31 @@ export const useRemindersStore = create<RemindersStore>()(
             t.id === id ? { ...t, parentId, updatedAt: new Date().toISOString() } : t
           ),
         })),
+      logAndReset: (id, record) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  completed: false,
+                  completionHistory: [...(t.completionHistory ?? []), record],
+                  lastResetDate: record.date,
+                  updatedAt: new Date().toISOString(),
+                }
+              : t
+          ),
+        })),
     }),
-    { name: 'pt-reminders' }
+    {
+      name: 'pt-reminders',
+      // Backfill missing fields for tasks created before this schema update
+      onRehydrateStorage: () => (state) => {
+        if (!state) return
+        state.tasks = state.tasks.map((t) => ({
+          ...DEFAULT_TASK_FIELDS,
+          ...t,
+        }))
+      },
+    }
   )
 )

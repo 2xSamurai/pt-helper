@@ -8,6 +8,10 @@ import { format } from 'date-fns'
 
 interface Props { entries: EatingEntry[]; view: ViewMode }
 
+function entryTotalGrams(e: EatingEntry): number {
+  return e.foods.reduce((s, f) => s + (f.grams ?? 0), 0)
+}
+
 export function EatingCharts({ entries, view }: Props) {
   const mealCount: Record<string, number> = {}
   entries.forEach((e) => { mealCount[e.mealTime] = (mealCount[e.mealTime] ?? 0) + 1 })
@@ -15,7 +19,7 @@ export function EatingCharts({ entries, view }: Props) {
 
   const daily = [...entries].reverse().slice(-30).map((e) => ({
     date: format(new Date(e.createdAt), 'MMM d'),
-    grams: e.portionGrams ?? 0,
+    grams: entryTotalGrams(e),
   }))
 
   const tooltip = {
@@ -39,7 +43,7 @@ export function EatingCharts({ entries, view }: Props) {
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
-        <p className="text-xs text-[var(--text-muted)] mb-3">Portion size over time (g)</p>
+        <p className="text-xs text-[var(--text-muted)] mb-3">Total portion per entry (g)</p>
         <ResponsiveContainer width="100%" height={180}>
           {view === 'bar' ? (
             <BarChart data={daily} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>

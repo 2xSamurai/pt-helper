@@ -17,7 +17,7 @@ export function EatingDetail() {
       <PageHeader title="Edit Entry" back
         action={<Button variant="ghost" size="icon" onClick={() => { remove(entry.id); navigate(-1) }}><Trash2 className="h-4 w-4 text-[var(--destructive)]" /></Button>}
       />
-      <div className="p-4 mb-nav">
+      <div className="p-4 mb-nav md:mb-0">
         <EatingForm
           initial={entry}
           onSubmit={(data) => { update(entry.id, data); navigate(-1) }}

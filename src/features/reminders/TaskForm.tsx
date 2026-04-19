@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Task, TaskRepeat, RepeatType, CustomFrequency } from '@/store/types'
-import { toISOLocal } from '@/lib/utils'
 
 interface TaskFormProps {
   initial?: Partial<Task>
@@ -18,8 +17,8 @@ interface TaskFormProps {
 const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
   { value: 'never', label: 'Never' },
   { value: 'daily', label: 'Daily' },
-  { value: 'weekdays', label: 'Weekdays' },
-  { value: 'weekends', label: 'Weekends' },
+  { value: 'weekdays', label: 'Weekdays (Mon–Fri)' },
+  { value: 'weekends', label: 'Weekends (Sat–Sun)' },
   { value: 'custom', label: 'Custom' },
 ]
 
@@ -37,15 +36,13 @@ export function TaskForm({ initial, parentId = null, onSubmit, onCancel, submitL
   const [endDate, setEndDate] = useState(initial?.repeat?.endDate ?? '')
   const [customFreq, setCustomFreq] = useState<CustomFrequency>(initial?.repeat?.customFrequency ?? 'daily')
   const [customX, setCustomX] = useState(String(initial?.repeat?.customEveryXDays ?? 2))
-  const [reminderTime, setReminderTime] = useState(
-    initial?.reminderTime ? toISOLocal(new Date(initial.reminderTime)) : ''
-  )
+  const [reminderTime, setReminderTime] = useState(initial?.reminderTime ?? '')
 
   function buildRepeat(): TaskRepeat {
     return {
       type: repeatType,
-      startDate: repeatType !== 'never' ? startDate : undefined,
-      endDate: repeatType !== 'never' ? endDate : undefined,
+      startDate: repeatType !== 'never' ? startDate || undefined : undefined,
+      endDate: repeatType !== 'never' ? endDate || undefined : undefined,
       customFrequency: repeatType === 'custom' ? customFreq : undefined,
       customEveryXDays: repeatType === 'custom' && customFreq === 'every-x-days' ? Number(customX) : undefined,
     }
@@ -76,11 +73,11 @@ export function TaskForm({ initial, parentId = null, onSubmit, onCancel, submitL
       {repeatType !== 'never' && (
         <div className="flex gap-3">
           <div className="flex-1">
-            <Label className="mb-1.5 block text-xs">Start date</Label>
+            <Label className="mb-1.5 block text-xs">Start date (optional)</Label>
             <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </div>
           <div className="flex-1">
-            <Label className="mb-1.5 block text-xs">End date</Label>
+            <Label className="mb-1.5 block text-xs">End date (optional)</Label>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
         </div>
@@ -107,10 +104,13 @@ export function TaskForm({ initial, parentId = null, onSubmit, onCancel, submitL
       )}
 
       <div>
-        <Label htmlFor="reminder-time" className="mb-1.5 block">Reminder time</Label>
+        <Label htmlFor="reminder-time" className="mb-1.5 block">
+          Reminder time
+          {repeatType !== 'never' && <span className="text-[var(--text-muted)] font-normal ml-1">(repeats on scheduled days)</span>}
+        </Label>
         <Input
           id="reminder-time"
-          type="datetime-local"
+          type="time"
           value={reminderTime}
           onChange={(e) => setReminderTime(e.target.value)}
         />
@@ -121,10 +121,13 @@ export function TaskForm({ initial, parentId = null, onSubmit, onCancel, submitL
         <Button
           disabled={!title.trim()}
           onClick={() => onSubmit({
-            title, description,
+            title,
+            description,
             repeat: buildRepeat(),
-            reminderTime: reminderTime ? new Date(reminderTime).toISOString() : null,
+            reminderTime: reminderTime || null,
             completed: initial?.completed ?? false,
+            completionHistory: initial?.completionHistory ?? [],
+            lastResetDate: initial?.lastResetDate ?? null,
             parentId: initial?.parentId ?? parentId,
           })}
         >

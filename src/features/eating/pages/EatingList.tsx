@@ -13,6 +13,10 @@ import { EatingForm } from '../EatingForm'
 import { EatingCharts } from '../EatingCharts'
 import { formatDateTime } from '@/lib/utils'
 
+function totalGrams(foods: { grams: number | null }[]): number {
+  return foods.reduce((s, f) => s + (f.grams ?? 0), 0)
+}
+
 export function EatingList() {
   const { entries, add, remove } = useEatingStore()
   const navigate = useNavigate()
@@ -31,36 +35,44 @@ export function EatingList() {
           </div>
         }
       />
-      <div className="flex-1 p-4 mb-nav">
+      <div className="flex-1 p-4 mb-nav md:mb-0">
         {entries.length === 0 ? (
           <EmptyState Icon={UtensilsCrossed} title="No entries yet" description="Tap + to log your first meal." />
         ) : view === 'list' ? (
           <div className="flex flex-col gap-3">
-            {entries.map((e) => (
-              <Card key={e.id} className="cursor-pointer active:opacity-70" onClick={() => navigate(`/trackers/eating/${e.id}`)}>
-                <CardContent className="pt-4 flex items-start gap-3">
-                  <div className="h-8 w-8 shrink-0 rounded-full bg-[var(--eating-color)] flex items-center justify-center">
-                    <UtensilsCrossed className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap gap-1 mb-1">
-                      <Badge variant="secondary">{e.mealTime}</Badge>
-                      {e.portionGrams != null && <Badge variant="outline">{e.portionGrams}g</Badge>}
+            {entries.map((e) => {
+              const total = totalGrams(e.foods)
+              return (
+                <Card key={e.id} className="cursor-pointer active:opacity-70" onClick={() => navigate(`/trackers/eating/${e.id}`)}>
+                  <CardContent className="pt-4 flex items-start gap-3">
+                    <div className="h-8 w-8 shrink-0 rounded-full bg-[var(--eating-color)] flex items-center justify-center">
+                      <UtensilsCrossed className="h-4 w-4 text-white" />
                     </div>
-                    <p className="text-sm font-medium text-[var(--text)] truncate">{e.foodName}</p>
-                    <p className="text-xs text-[var(--text-muted)]">{formatDateTime(e.createdAt)}</p>
-                    {e.note && <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{e.note}</p>}
-                  </div>
-                  <Button
-                    variant="ghost" size="icon"
-                    className="shrink-0 text-[var(--text-muted)] hover:text-[var(--destructive)]"
-                    onClick={(ev) => { ev.stopPropagation(); remove(e.id) }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap gap-1 mb-1">
+                        <Badge variant="secondary">{e.mealTime}</Badge>
+                        {total > 0 && <Badge variant="outline">{total}g total</Badge>}
+                      </div>
+                      {e.foods.length > 0 && (
+                        <p className="text-sm font-medium text-[var(--text)] truncate">
+                          {e.foods[0].name}
+                          {e.foods.length > 1 && <span className="text-[var(--text-muted)] font-normal"> +{e.foods.length - 1} more</span>}
+                        </p>
+                      )}
+                      <p className="text-xs text-[var(--text-muted)]">{formatDateTime(e.createdAt)}</p>
+                      {e.note && <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{e.note}</p>}
+                    </div>
+                    <Button
+                      variant="ghost" size="icon"
+                      className="shrink-0 text-[var(--text-muted)] hover:text-[var(--destructive)]"
+                      onClick={(ev) => { ev.stopPropagation(); remove(e.id) }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         ) : (
           <EatingCharts entries={entries} view={view} />

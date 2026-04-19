@@ -11,9 +11,11 @@ const NAV = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--border)] bg-[var(--bg-card)]"
-         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="flex items-stretch max-w-lg mx-auto">
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--border)] bg-[var(--bg-card)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="flex items-stretch">
         {NAV.map(({ to, label, Icon }) => (
           <NavLink
             key={to}

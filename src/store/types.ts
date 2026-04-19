@@ -35,10 +35,14 @@ export interface WellnessEntry extends BaseEntry {
 }
 
 // ─── Eating ───
+export interface FoodItem {
+  name: string
+  grams: number | null
+}
+
 export interface EatingEntry extends BaseEntry {
   mealTime: string
-  foodName: string
-  portionGrams: number | null
+  foods: FoodItem[]
 }
 
 export const DEFAULT_MEAL_TIMES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
@@ -55,14 +59,21 @@ export interface TaskRepeat {
   customEveryXDays?: number
 }
 
+export interface CompletionRecord {
+  date: string       // yyyy-MM-dd
+  completed: boolean
+}
+
 export interface Task {
   id: string
   parentId: string | null
   title: string
   description: string
   repeat: TaskRepeat
-  reminderTime: string | null
+  reminderTime: string | null  // "HH:MM" format (24h)
   completed: boolean
+  completionHistory: CompletionRecord[]
+  lastResetDate: string | null  // yyyy-MM-dd of last auto-reset
   createdAt: string
   updatedAt: string
 }

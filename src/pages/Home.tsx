@@ -77,7 +77,7 @@ function SectionSummary({ id }: { id: string }) {
   if (id === 'eating') {
     const latest = eating.entries[0]
     return latest
-      ? <p className="text-xs text-[var(--text-muted)] mt-0.5">Last: {latest.foodName} ({latest.mealTime})</p>
+      ? <p className="text-xs text-[var(--text-muted)] mt-0.5">Last: {latest.foods[0]?.name ?? '—'} ({latest.mealTime})</p>
       : <p className="text-xs text-[var(--text-muted)] mt-0.5">No entries yet</p>
   }
   if (id === 'reminders') {
