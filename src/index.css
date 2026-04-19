@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: oklch(0.97 0.03 293);
+  --color-primary-100: oklch(0.93 0.07 293);
+  --color-primary-200: oklch(0.86 0.12 293);
+  --color-primary-300: oklch(0.77 0.17 293);
+  --color-primary-400: oklch(0.67 0.22 293);
+  --color-primary-500: oklch(0.58 0.26 293);
+  --color-primary-600: oklch(0.50 0.26 293);
+  --color-primary-700: oklch(0.43 0.24 293);
+  --color-primary-800: oklch(0.36 0.20 293);
+  --color-primary-900: oklch(0.29 0.15 293);
+}
+
+:root {
+  --bg: oklch(0.99 0 0);
+  --bg-subtle: oklch(0.96 0.005 293);
+  --bg-card: oklch(1 0 0);
+  --border: oklch(0.90 0.01 293);
+  --text: oklch(0.15 0.01 293);
+  --text-muted: oklch(0.50 0.02 293);
+  --primary: oklch(0.50 0.26 293);
+  --primary-fg: oklch(1 0 0);
+  --primary-hover: oklch(0.43 0.24 293);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-fg: oklch(1 0 0);
+  --ring: oklch(0.50 0.26 293);
+  --bloating-color: oklch(0.65 0.20 30);
+  --bowel-color: oklch(0.55 0.18 145);
+  --wellness-color: oklch(0.60 0.22 240);
+  --eating-color: oklch(0.62 0.20 80);
+  --reminder-color: oklch(0.55 0.22 293);
+}
+
+.dark {
+  --bg: oklch(0.13 0.01 293);
+  --bg-subtle: oklch(0.17 0.015 293);
+  --bg-card: oklch(0.16 0.015 293);
+  --border: oklch(0.25 0.02 293);
+  --text: oklch(0.95 0.005 293);
+  --text-muted: oklch(0.62 0.02 293);
+  --primary: oklch(0.67 0.22 293);
+  --primary-fg: oklch(0.10 0.01 293);
+  --primary-hover: oklch(0.72 0.20 293);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-fg: oklch(1 0 0);
+  --ring: oklch(0.67 0.22 293);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/deepak/Personal/React/**)",
+      "Bash(npm create *)",
+      "Bash(cp -r /Users/deepak/Personal/React/pt-helper-tmp/. /Users/deepak/Personal/React/pt-helper/)",
+      "Bash(rm -rf /Users/deepak/Personal/React/pt-helper-tmp)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
