@@ -9,6 +9,7 @@ interface BloatingStore {
   update: (id: string, data: Partial<BloatingEntry>) => void
   remove: (id: string) => void
   restore: (entry: BloatingEntry) => void
+  replace: (entries: BloatingEntry[]) => void
 }
 
 export const useBloatingStore = create<BloatingStore>()(
@@ -35,6 +36,7 @@ export const useBloatingStore = create<BloatingStore>()(
             ? s.entries
             : [entry, ...s.entries],
         })),
+      replace: (entries) => set({ entries }),
     }),
     { name: 'pt-bloating' }
   )

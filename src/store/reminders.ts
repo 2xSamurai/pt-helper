@@ -11,6 +11,7 @@ interface RemindersStore {
   restore: (task: Task) => void
   setParent: (id: string, parentId: string | null) => void
   logAndReset: (id: string, record: CompletionRecord) => void
+  replace: (tasks: Task[]) => void
 }
 
 const DEFAULT_TASK_FIELDS = {
@@ -60,6 +61,7 @@ export const useRemindersStore = create<RemindersStore>()(
             t.id === id ? { ...t, parentId, updatedAt: new Date().toISOString() } : t
           ),
         })),
+      replace: (tasks) => set({ tasks }),
       logAndReset: (id, record) =>
         set((s) => ({
           tasks: s.tasks.map((t) =>

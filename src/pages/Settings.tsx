@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Moon, Sun, Trash2, Plus, Download } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Moon, Sun, Trash2, Plus, Download, Upload } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ import { useWellnessStore } from '@/store/wellness'
 import { useEatingStore } from '@/store/eating'
 import { useRemindersStore } from '@/store/reminders'
 import { exportJSON } from '@/lib/export'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const SECTIONS = [
   { id: 'bloating', label: 'Bloating tracker' },
@@ -75,6 +76,9 @@ export function Settings() {
   const wellness = useWellnessStore()
   const eating = useEatingStore()
   const reminders = useRemindersStore()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [importDialog, setImportDialog] = useState<{ data: Record<string, unknown> } | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
 
   function handleDarkMode(checked: boolean) {
     settings.set({ darkMode: checked })
@@ -90,6 +94,44 @@ export function Settings() {
       reminders: reminders.tasks,
       exportedAt: new Date().toISOString(),
     }, 'pt-helper-export')
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!fileInputRef.current) return
+    fileInputRef.current.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string)
+        if (typeof parsed !== 'object' || parsed === null) throw new Error('Invalid format')
+        setImportError(null)
+        setImportDialog({ data: parsed as Record<string, unknown> })
+      } catch {
+        setImportError('Invalid JSON file.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  function applyImport(mode: 'merge' | 'replace') {
+    if (!importDialog) return
+    const { data } = importDialog
+    if (mode === 'replace') {
+      if (Array.isArray(data.bloating)) bloating.replace(data.bloating)
+      if (Array.isArray(data.bowel)) bowel.replace(data.bowel)
+      if (Array.isArray(data.wellness)) wellness.replace(data.wellness)
+      if (Array.isArray(data.eating)) eating.replace(data.eating)
+      if (Array.isArray(data.reminders)) reminders.replace(data.reminders)
+    } else {
+      if (Array.isArray(data.bloating)) data.bloating.forEach((e) => bloating.restore(e))
+      if (Array.isArray(data.bowel)) data.bowel.forEach((e) => bowel.restore(e))
+      if (Array.isArray(data.wellness)) data.wellness.forEach((e) => wellness.restore(e))
+      if (Array.isArray(data.eating)) data.eating.forEach((e) => eating.restore(e))
+      if (Array.isArray(data.reminders)) data.reminders.forEach((t) => reminders.restore(t))
+    }
+    setImportDialog(null)
   }
 
   return (
@@ -166,16 +208,36 @@ export function Settings() {
           </CardContent>
         </Card>
 
-        {/* Data export */}
+        {/* Data export / import */}
         <Card>
           <CardHeader><CardTitle>Data</CardTitle></CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-2">
             <Button variant="outline" onClick={handleExport} className="w-full gap-2">
               <Download className="h-4 w-4" />
               Export all data (JSON)
             </Button>
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full gap-2">
+              <Upload className="h-4 w-4" />
+              Import data (JSON)
+            </Button>
+            <input ref={fileInputRef} type="file" accept=".json,application/json" className="hidden" onChange={handleFileChange} />
+            {importError && <p className="text-xs text-[var(--destructive)]">{importError}</p>}
           </CardContent>
         </Card>
+
+        <Dialog open={!!importDialog} onOpenChange={(o) => { if (!o) setImportDialog(null) }}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Import data</DialogTitle></DialogHeader>
+            <p className="text-sm text-[var(--text-muted)]">
+              <strong>Merge</strong> adds imported records without removing existing ones (duplicates by ID are skipped).<br />
+              <strong>Replace</strong> overwrites all existing data with the imported file.
+            </p>
+            <div className="flex gap-2 mt-2">
+              <Button variant="outline" className="flex-1" onClick={() => applyImport('merge')}>Merge</Button>
+              <Button variant="destructive" className="flex-1" onClick={() => applyImport('replace')}>Replace</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>

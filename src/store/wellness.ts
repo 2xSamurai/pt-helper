@@ -9,6 +9,7 @@ interface WellnessStore {
   update: (id: string, data: Partial<WellnessEntry>) => void
   remove: (id: string) => void
   restore: (entry: WellnessEntry) => void
+  replace: (entries: WellnessEntry[]) => void
 }
 
 export const useWellnessStore = create<WellnessStore>()(
@@ -35,6 +36,7 @@ export const useWellnessStore = create<WellnessStore>()(
             ? s.entries
             : [entry, ...s.entries],
         })),
+      replace: (entries) => set({ entries }),
     }),
     { name: 'pt-wellness' }
   )

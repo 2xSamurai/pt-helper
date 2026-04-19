@@ -9,6 +9,7 @@ interface EatingStore {
   update: (id: string, data: Partial<EatingEntry>) => void
   remove: (id: string) => void
   restore: (entry: EatingEntry) => void
+  replace: (entries: EatingEntry[]) => void
 }
 
 export const useEatingStore = create<EatingStore>()(
@@ -35,6 +36,7 @@ export const useEatingStore = create<EatingStore>()(
             ? s.entries
             : [entry, ...s.entries],
         })),
+      replace: (entries) => set({ entries }),
     }),
     {
       name: 'pt-eating',

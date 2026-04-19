@@ -9,6 +9,7 @@ interface BowelStore {
   update: (id: string, data: Partial<BowelEntry>) => void
   remove: (id: string) => void
   restore: (entry: BowelEntry) => void
+  replace: (entries: BowelEntry[]) => void
 }
 
 export const useBowelStore = create<BowelStore>()(
@@ -35,6 +36,7 @@ export const useBowelStore = create<BowelStore>()(
             ? s.entries
             : [entry, ...s.entries],
         })),
+      replace: (entries) => set({ entries }),
     }),
     { name: 'pt-bowel' }
   )
