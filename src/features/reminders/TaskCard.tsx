@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, ChevronDown, Trash2, Pencil, Plus, Unlink } from 'lucide-react'
+import { ChevronRight, ChevronDown, Trash2, Pencil, Plus, Unlink, Copy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -108,6 +108,25 @@ export function TaskCard({ task, subtasks = [], allTasks = [], depth = 0 }: Task
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditing(true)}>
                 <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost" size="icon"
+                className="h-7 w-7 text-[var(--text-muted)]"
+                title="Duplicate task"
+                onClick={() => {
+                  add({
+                    parentId: task.parentId,
+                    title: `${task.title} (copy)`,
+                    description: task.description,
+                    repeat: task.repeat,
+                    reminderTime: task.reminderTime,
+                    completed: false,
+                    completionHistory: [],
+                    lastResetDate: null,
+                  })
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
               </Button>
               <Button
                 variant="ghost" size="icon"
