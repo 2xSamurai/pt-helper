@@ -4,10 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pt-helper-tmp</title>
+    <title>PT Helper</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // GitHub Pages SPA redirect: restore path from query param set by 404.html
+      (function() {
+        var redirect = sessionStorage.redirect
+        delete sessionStorage.redirect
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect)
+        }
+        var p = new URLSearchParams(location.search).get('p')
+        if (p) {
+          var path = '/' + p.replace(/~and~/g, '&')
+          history.replaceState(null, null, path + location.hash)
+        }
+      })()
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
