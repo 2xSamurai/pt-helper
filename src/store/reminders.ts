@@ -8,6 +8,7 @@ interface RemindersStore {
   add: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => string
   update: (id: string, data: Partial<Task>) => void
   remove: (id: string) => void
+  restore: (task: Task) => void
   setParent: (id: string, parentId: string | null) => void
   logAndReset: (id: string, record: CompletionRecord) => void
 }
@@ -46,6 +47,12 @@ export const useRemindersStore = create<RemindersStore>()(
       remove: (id) =>
         set((s) => ({
           tasks: s.tasks.filter((t) => t.id !== id && t.parentId !== id),
+        })),
+      restore: (task) =>
+        set((s) => ({
+          tasks: s.tasks.some((t) => t.id === task.id)
+            ? s.tasks
+            : [...s.tasks, task],
         })),
       setParent: (id, parentId) =>
         set((s) => ({

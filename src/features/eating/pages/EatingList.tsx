@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useEatingStore } from '@/store/eating'
+import { useUndoStore } from '@/store/undo'
 import { EatingForm } from '../EatingForm'
 import { EatingCharts } from '../EatingCharts'
 import { formatDateTime } from '@/lib/utils'
@@ -18,10 +19,18 @@ function totalGrams(foods: { grams: number | null }[]): number {
 }
 
 export function EatingList() {
-  const { entries, add, remove } = useEatingStore()
+  const { entries, add, remove, restore } = useEatingStore()
+  const showUndo = useUndoStore((s) => s.show)
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<ViewMode>('list')
+
+  function handleDelete(id: string) {
+    const entry = entries.find((e) => e.id === id)
+    if (!entry) return
+    remove(id)
+    showUndo('Meal entry deleted', () => restore(entry))
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -65,7 +74,7 @@ export function EatingList() {
                     <Button
                       variant="ghost" size="icon"
                       className="shrink-0 text-[var(--text-muted)] hover:text-[var(--destructive)]"
-                      onClick={(ev) => { ev.stopPropagation(); remove(e.id) }}
+                      onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id) }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

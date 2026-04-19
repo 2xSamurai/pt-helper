@@ -6,15 +6,13 @@ import { EmptyState } from '@/components/EmptyState'
 import { ViewToggle, type ViewMode } from '@/components/ViewToggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useBloatingStore } from '@/store/bloating'
+import { useUndoStore } from '@/store/undo'
 import { BLOATING_LABELS } from '@/store/types'
 import { BloatingForm } from '../BloatingForm'
 import { BloatingCharts } from '../BloatingCharts'
-import { formatDateTime } from '@/lib/utils'
-import { cn } from '@/lib/utils'
+import { formatDateTime, cn } from '@/lib/utils'
 
 const LEVEL_COLORS = [
   'bg-green-500', 'bg-lime-500', 'bg-yellow-500',
@@ -22,10 +20,18 @@ const LEVEL_COLORS = [
 ]
 
 export function BloatingList() {
-  const { entries, add, remove } = useBloatingStore()
+  const { entries, add, remove, restore } = useBloatingStore()
+  const showUndo = useUndoStore((s) => s.show)
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<ViewMode>('list')
+
+  function handleDelete(id: string) {
+    const entry = entries.find((e) => e.id === id)
+    if (!entry) return
+    remove(id)
+    showUndo(`Bloating entry deleted`, () => restore(entry))
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -63,10 +69,9 @@ export function BloatingList() {
                     {e.note && <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{e.note}</p>}
                   </div>
                   <Button
-                    variant="ghost"
-                    size="icon"
+                    variant="ghost" size="icon"
                     className="shrink-0 text-[var(--text-muted)] hover:text-[var(--destructive)]"
-                    onClick={(ev) => { ev.stopPropagation(); remove(e.id) }}
+                    onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id) }}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -81,9 +86,7 @@ export function BloatingList() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Log Bloating</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Log Bloating</DialogTitle></DialogHeader>
           <BloatingForm
             onSubmit={(data) => { add(data); setOpen(false) }}
             onCancel={() => setOpen(false)}

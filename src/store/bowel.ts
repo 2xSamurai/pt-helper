@@ -8,6 +8,7 @@ interface BowelStore {
   add: (data: Omit<BowelEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
   update: (id: string, data: Partial<BowelEntry>) => void
   remove: (id: string) => void
+  restore: (entry: BowelEntry) => void
 }
 
 export const useBowelStore = create<BowelStore>()(
@@ -28,6 +29,12 @@ export const useBowelStore = create<BowelStore>()(
           ),
         })),
       remove: (id) => set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
+      restore: (entry) =>
+        set((s) => ({
+          entries: s.entries.some((e) => e.id === entry.id)
+            ? s.entries
+            : [entry, ...s.entries],
+        })),
     }),
     { name: 'pt-bowel' }
   )

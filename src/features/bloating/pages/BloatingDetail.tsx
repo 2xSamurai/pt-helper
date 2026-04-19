@@ -3,13 +3,15 @@ import { Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { useBloatingStore } from '@/store/bloating'
+import { useUndoStore } from '@/store/undo'
 import { BloatingForm } from '../BloatingForm'
 import type { BloatingEntry } from '@/store/types'
 
 export function BloatingDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { entries, update, remove } = useBloatingStore()
+  const { entries, update, remove, restore } = useBloatingStore()
+  const showUndo = useUndoStore((s) => s.show)
   const entry = entries.find((e) => e.id === id)
 
   if (!entry) return <div className="p-4 text-[var(--text-muted)]">Entry not found.</div>
@@ -21,6 +23,7 @@ export function BloatingDetail() {
 
   function handleDelete() {
     remove(entry!.id)
+    showUndo('Bloating entry deleted', () => restore(entry!))
     navigate(-1)
   }
 

@@ -8,6 +8,7 @@ interface BloatingStore {
   add: (data: Omit<BloatingEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
   update: (id: string, data: Partial<BloatingEntry>) => void
   remove: (id: string) => void
+  restore: (entry: BloatingEntry) => void
 }
 
 export const useBloatingStore = create<BloatingStore>()(
@@ -28,6 +29,12 @@ export const useBloatingStore = create<BloatingStore>()(
           ),
         })),
       remove: (id) => set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
+      restore: (entry) =>
+        set((s) => ({
+          entries: s.entries.some((e) => e.id === entry.id)
+            ? s.entries
+            : [entry, ...s.entries],
+        })),
     }),
     { name: 'pt-bloating' }
   )

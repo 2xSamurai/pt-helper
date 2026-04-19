@@ -8,6 +8,7 @@ interface WellnessStore {
   add: (data: Omit<WellnessEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
   update: (id: string, data: Partial<WellnessEntry>) => void
   remove: (id: string) => void
+  restore: (entry: WellnessEntry) => void
 }
 
 export const useWellnessStore = create<WellnessStore>()(
@@ -28,6 +29,12 @@ export const useWellnessStore = create<WellnessStore>()(
           ),
         })),
       remove: (id) => set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
+      restore: (entry) =>
+        set((s) => ({
+          entries: s.entries.some((e) => e.id === entry.id)
+            ? s.entries
+            : [entry, ...s.entries],
+        })),
     }),
     { name: 'pt-wellness' }
   )

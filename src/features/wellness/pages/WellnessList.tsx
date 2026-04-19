@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useWellnessStore } from '@/store/wellness'
+import { useUndoStore } from '@/store/undo'
 import { WellnessForm } from '../WellnessForm'
 import { WellnessCharts } from '../WellnessCharts'
 import { formatDateTime } from '@/lib/utils'
@@ -16,10 +17,18 @@ const MIND_EMOJI = ['', '🌫️', '😔', '😐', '😊', '🌟']
 const ENERGY_EMOJI = ['', '😴', '🔋', '⚡', '🚀', '💥']
 
 export function WellnessList() {
-  const { entries, add, remove } = useWellnessStore()
+  const { entries, add, remove, restore } = useWellnessStore()
+  const showUndo = useUndoStore((s) => s.show)
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<ViewMode>('list')
+
+  function handleDelete(id: string) {
+    const entry = entries.find((e) => e.id === id)
+    if (!entry) return
+    remove(id)
+    showUndo('Wellness entry deleted', () => restore(entry))
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -53,7 +62,7 @@ export function WellnessList() {
                   <Button
                     variant="ghost" size="icon"
                     className="shrink-0 text-[var(--text-muted)] hover:text-[var(--destructive)]"
-                    onClick={(ev) => { ev.stopPropagation(); remove(e.id) }}
+                    onClick={(ev) => { ev.stopPropagation(); handleDelete(e.id) }}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

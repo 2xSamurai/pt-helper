@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useRemindersStore } from '@/store/reminders'
+import { useUndoStore } from '@/store/undo'
 import { TaskForm } from './TaskForm'
 import type { Task } from '@/store/types'
 import { cn } from '@/lib/utils'
@@ -36,7 +37,8 @@ function formatTime(hhmm: string): string {
 }
 
 export function TaskCard({ task, subtasks = [], allTasks = [], depth = 0 }: TaskCardProps) {
-  const { update, remove, add, setParent } = useRemindersStore()
+  const { update, remove, restore, add, setParent } = useRemindersStore()
+  const showUndo = useUndoStore((s) => s.show)
   const [expanded, setExpanded] = useState(true)
   const [editing, setEditing] = useState(false)
   const [addingSub, setAddingSub] = useState(false)
@@ -110,7 +112,16 @@ export function TaskCard({ task, subtasks = [], allTasks = [], depth = 0 }: Task
               <Button
                 variant="ghost" size="icon"
                 className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--destructive)]"
-                onClick={() => remove(task.id)}
+                onClick={() => {
+                  // Capture task + its direct subtasks before remove (which cascades)
+                  const { tasks } = useRemindersStore.getState()
+                  const children = tasks.filter((t) => t.parentId === task.id)
+                  remove(task.id)
+                  showUndo(`"${task.title}" deleted`, () => {
+                    restore(task)
+                    children.forEach((c) => restore(c))
+                  })
+                }}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>

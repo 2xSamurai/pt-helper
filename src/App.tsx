@@ -16,6 +16,7 @@ import { EatingDetail } from '@/features/eating/pages/EatingDetail'
 import { RemindersList } from '@/features/reminders/pages/RemindersList'
 import { useSettingsStore } from '@/store/settings'
 import { useReminderNotifications } from '@/hooks/useReminderNotifications'
+import { UndoToast } from '@/components/UndoToast'
 
 export default function App() {
   const { darkMode } = useSettingsStore()
@@ -52,6 +53,9 @@ export default function App() {
         {/* Mobile bottom tab bar */}
         <BottomNav />
       </div>
+
+      {/* Global undo toast — rendered outside main so it overlays everything */}
+      <UndoToast />
     </div>
   )
 }

@@ -8,6 +8,7 @@ interface EatingStore {
   add: (data: Omit<EatingEntry, 'id' | 'createdAt' | 'updatedAt'>) => void
   update: (id: string, data: Partial<EatingEntry>) => void
   remove: (id: string) => void
+  restore: (entry: EatingEntry) => void
 }
 
 export const useEatingStore = create<EatingStore>()(
@@ -28,18 +29,20 @@ export const useEatingStore = create<EatingStore>()(
           ),
         })),
       remove: (id) => set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
+      restore: (entry) =>
+        set((s) => ({
+          entries: s.entries.some((e) => e.id === entry.id)
+            ? s.entries
+            : [entry, ...s.entries],
+        })),
     }),
     {
       name: 'pt-eating',
       onRehydrateStorage: () => (state) => {
         if (!state) return
-        // Migrate v0 entries (foodName/portionGrams) → v1 (foods array)
         state.entries = state.entries.map((e: EatingEntry & { foodName?: string; portionGrams?: number | null }) => {
           if (!e.foods) {
-            return {
-              ...e,
-              foods: e.foodName ? [{ name: e.foodName, grams: e.portionGrams ?? null }] : [],
-            }
+            return { ...e, foods: e.foodName ? [{ name: e.foodName, grams: e.portionGrams ?? null }] : [] }
           }
           return e
         })
