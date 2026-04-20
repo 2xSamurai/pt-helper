@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useSettingsStore } from '@/store/settings'
+import { cn } from '@/lib/utils'
 import type { EatingEntry, FoodItem } from '@/store/types'
 
 interface EatingFormProps {
@@ -16,7 +17,7 @@ interface EatingFormProps {
 }
 
 function emptyFood(): FoodItem {
-  return { name: '', grams: null }
+  return { name: '', grams: null, unit: 'g' }
 }
 
 export function EatingForm({ initial, onSubmit, onCancel, submitLabel = 'Save' }: EatingFormProps) {
@@ -39,7 +40,7 @@ export function EatingForm({ initial, onSubmit, onCancel, submitLabel = 'Save' }
     setFoods((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const totalGrams = foods.reduce((sum, f) => sum + (f.grams ?? 0), 0)
+  const totalGrams = foods.reduce((sum, f) => (f.unit ?? 'g') === 'g' ? sum + (f.grams ?? 0) : sum, 0)
   const isValid = foods.some((f) => f.name.trim())
 
   return (
@@ -69,16 +70,38 @@ export function EatingForm({ initial, onSubmit, onCancel, submitLabel = 'Save' }
                 value={food.name}
                 onChange={(e) => updateFood(i, { name: e.target.value })}
                 placeholder="Food name"
-                className="flex-1"
+                className="flex-1 min-w-0"
               />
               <Input
                 type="number"
                 value={food.grams ?? ''}
                 onChange={(e) => updateFood(i, { grams: e.target.value ? Number(e.target.value) : null })}
-                placeholder="g"
-                className="w-20 shrink-0"
+                placeholder="qty"
+                className="w-16 shrink-0"
                 min={0}
               />
+              <div className="flex rounded-md border text-xs overflow-hidden shrink-0 h-9">
+                <button
+                  type="button"
+                  className={cn(
+                    'px-2 py-1 transition-colors',
+                    (food.unit ?? 'g') === 'g'
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
+                  )}
+                  onClick={() => updateFood(i, { unit: 'g' })}
+                >g</button>
+                <button
+                  type="button"
+                  className={cn(
+                    'px-2 py-1 transition-colors border-l',
+                    food.unit === 'nos'
+                      ? 'bg-[var(--primary)] text-white'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--bg-subtle)]'
+                  )}
+                  onClick={() => updateFood(i, { unit: 'nos' })}
+                >nos</button>
+              </div>
               {foods.length > 1 && (
                 <Button
                   variant="ghost" size="icon"

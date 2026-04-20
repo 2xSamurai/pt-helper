@@ -9,13 +9,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useEatingStore } from '@/store/eating'
+import type { FoodItem } from '@/store/types'
 import { useUndoStore } from '@/store/undo'
 import { EatingForm } from '../EatingForm'
 import { EatingCharts } from '../EatingCharts'
 import { formatDateTime } from '@/lib/utils'
 
-function totalGrams(foods: { grams: number | null }[]): number {
-  return foods.reduce((s, f) => s + (f.grams ?? 0), 0)
+function totalGrams(foods: FoodItem[]): number {
+  return foods.reduce((s, f) => (f.unit ?? 'g') === 'g' ? s + (f.grams ?? 0) : s, 0)
 }
 
 export function EatingList() {

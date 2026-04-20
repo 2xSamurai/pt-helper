@@ -1,8 +1,18 @@
-import { differenceInCalendarDays, format } from 'date-fns'
+import { differenceInCalendarDays, format, addDays } from 'date-fns'
 import type { TaskRepeat } from '@/store/types'
 
 export function todayStr(): string {
   return format(new Date(), 'yyyy-MM-dd')
+}
+
+export function nextOccurrenceDate(repeat: TaskRepeat): Date | null {
+  if (repeat.type === 'never') return null
+  const today = new Date()
+  for (let i = 0; i <= 365; i++) {
+    const d = addDays(new Date(today.getFullYear(), today.getMonth(), today.getDate()), i)
+    if (isRepeatDay(repeat, d)) return d
+  }
+  return null
 }
 
 export function isRepeatDay(repeat: TaskRepeat, date: Date = new Date()): boolean {

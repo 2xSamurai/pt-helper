@@ -37,7 +37,8 @@ export interface WellnessEntry extends BaseEntry {
 // ─── Eating ───
 export interface FoodItem {
   name: string
-  grams: number | null
+  grams: number | null   // quantity value (either grams or count)
+  unit?: 'g' | 'nos'    // defaults to 'g' when absent
 }
 
 export interface EatingEntry extends BaseEntry {
